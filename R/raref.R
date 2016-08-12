@@ -6,7 +6,7 @@ function(matrix, dens, nrandom=99)
     F<-E[1:ss,]
     return(c(specpool(F)$Species,sum(F)))
     }
-cat("computing...", "\n")
+
 a<-as.matrix(matrix)
 if(is.null(nrandom)==TRUE | nrandom<10) nrandom<-99
 if(is.null(dens)==TRUE | dens<=0) stop("invalid dens value")
@@ -34,5 +34,5 @@ alpha<-asin(opp/hyp)
 ad_prime<-dens-sortie[indo,2]
 opp_prime<-tan(alpha) * ad_prime
 Sinterp<-sortie[indo,1]+opp_prime
-cat("done", "\n")
+
 return(list(rar=sortie, Sinterp=c(dens,Sinterp)))}

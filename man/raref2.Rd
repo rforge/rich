@@ -1,5 +1,4 @@
 \name{raref2}
-\Rdversion{0.1}
 \alias{raref2}
 
 \title{Estimates the species richness for a given number of sampled individuals on the basis of the corresponding rarefaction curve}
@@ -22,10 +21,11 @@ raref2(matrix, dens, tolerance, nrandom=99)
 Jean-Pierre Rossi \email{jean-pierre.rossi@supagro.inra.fr}
 }
 \seealso{
-\code{\link{raref}, \link{c2rcv}, \link{rich}}
+\code{\link{raref}, \link{rich}}
 }
 \examples{
+\dontrun{
 data(ef)
-raref2(matrix=ef,dens=1100,tolerance=0.01,nrandom=1000)
-}
-\keyword{ rarefy }
+raref2(matrix=ef,dens=1100,tolerance=0.01,nrandom=50)
+}}
+

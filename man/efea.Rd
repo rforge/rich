@@ -6,7 +6,7 @@
   data(efea)
 }
 \description{
-  The \code{efea} data set is a list of two data sets. Each one is a data frame giving the species abundance of soil macrofauna in a set of soil samples.  \code{efea$ef} corresponds to samples collected in a secondary forest in French Guiana while \code{efea$ea} contains data collected in in a field (aka abattis) in French Guiana. These data were collected in the viciny of the Wayana village of Elahe situated on the Tampoc river.  
+  The \code{efea} data set is a list of two data sets. Each one is a data frame giving the species abundance of soil macrofauna in a set of soil samples.  \code{efeb$ef} corresponds to samples collected in a secondary forest in French Guiana while \code{efeb$ea} contains data collected in in a field (aka abattis) in French Guiana. These data were collected in the viciny of the Wayana village of Elahe situated on the Tampoc river.  
  }
 \format{
  \code{efea} is a list of two data frame containing the observations of 142 species (columns) at 30 sampling locations (rows).
@@ -19,5 +19,5 @@ data(efea)
 rich(matrix=efea[[1]])
 shared(efea)
 }
-\keyword{datasets}
+
 

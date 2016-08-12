@@ -1,10 +1,9 @@
 \name{c2cv}
-\Rdversion{0.1}
 \alias{c2cv}
 
 \title{Comparison of 2 values of species richness using a randomization procedure}
 
-\description{Species richnesses are computed as the cumulative value over all samples. Richnesses are compared by means of a randomization test without controlling for differences of sampling regime or communities density.
+\description{Species richnesses are computed as the cumulative value over all samples. Richnesses are compared by mean of a randomization test without controlling for differences of sampling regime of communities density.
 
 }
 \usage{
@@ -48,13 +47,11 @@ The observed difference between populations is included in the numerator and the
 %% ~Make other sections like Warning with \section{Warning }{....} ~
 
 \seealso{
-\code{\link{c2rcv}, \link{c2m}, \link{rich}}
+\code{\link{c2m}, \link{rich}}
 }
 \examples{
+\dontrun{
 data(efeb)
 c2cv(com1=efeb$ef,com2=efeb$eb,nrandom=100,verbose=FALSE)
-}
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
-\keyword{ species richness }
-\keyword{ richness comparison }% __ONLY ONE__ keyword per line
+}}
+

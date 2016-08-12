@@ -19,5 +19,5 @@ data(efeb)
 rich(matrix=efeb[[1]])
 shared(efeb)
 }
-\keyword{datasets}
+
 

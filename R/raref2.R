@@ -27,7 +27,7 @@ if(dens>=sum(ef)) stop("invalid dens value: too high")
 seuil<-dens
 lb<-seuil-seuil*tolerance
 ub<-seuil+seuil*tolerance
-cat("computing...", "\n")
+
 ef_prime.boot<-boot(ef, thinning, R=nrandom,ub=ub,lb=lb)
-cat("done", "\n")
-return(list(mean.boot=mean(ef_prime.boot$t),sd.boot=sd(ef_prime.boot$t)))}
+
+return(list(mean.boot=mean(ef_prime.boot$t),sd.boot=sd(as.vector(ef_prime.boot$t))))}

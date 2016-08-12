@@ -20,6 +20,6 @@ data(ea)
 rich(matrix=ea)
 
 }
-\keyword{datasets}
+
 
 

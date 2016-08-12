@@ -1,5 +1,4 @@
 \name{raref}
-\Rdversion{0.1}
 \alias{raref}
 \title{Estimates the species richness for a given number of sampled individuals on the basis of the corresponding rarefaction curve}
 \description{\code{raref} computes rarefaction curve and interpolates the species richness corresponding to a given density of individuals.}
@@ -27,8 +26,8 @@ Jean-Pierre Rossi \email{jean-pierre.rossi@supagro.inra.fr}
 \code{\link{rarc}, \link{raref2}, \link{rich}}
 }
 \examples{
+\dontrun{
 data(ef)
-raref(ef, dens=1100, nrandom=1000)
-}
-\keyword{ rarefaction curve }
-\keyword{ rarefy }
+raref(ef, dens=1100, nrandom=100)
+}}
+

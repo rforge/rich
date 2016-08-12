@@ -1,5 +1,4 @@
 \name{shared}
-\Rdversion{0.1}
 \alias{shared}
 \title{Computes the number of species shared by groups of sampling units and other useful statistics}
 \description{\code{shared} computes the richness of each group of sample depicting a community, the number of species shared by pairs of communities and the total number of species for each pairs of community.}
@@ -49,6 +48,3 @@ colnames(site3)<-c("sp1", "sp2", "sp3", "sp4")
 data<-list(site1,site2, site3)
 names(data)<-c("site1","site2","site3")
 shared(data)}
-
-\keyword{ species richness }
-\keyword{ shared species }

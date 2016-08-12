@@ -1,7 +1,7 @@
 \name{Tomicus}
 \alias{Tomicus}
 \docType{data}
-\encoding{latin1} 
+
 \title{Maximum temperature at sites hosting 2 species of closely related bark-beetles of genus Tomicus}
 \usage{
   data(Tomicus)
@@ -24,5 +24,5 @@ data(Tomicus)
 c2m(pop1=Tomicus$destruens,pop2=Tomicus$piniperda,
 pop3=Tomicus$both, nrandom=99)
 }
-\keyword{datasets}
+
 
