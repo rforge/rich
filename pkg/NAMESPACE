@@ -1,0 +1,8 @@
+exportPattern("^[[:alpha:]]+")
+importFrom(vegan,specpool)
+importFrom(boot, boot, boot.ci)
+importFrom("utils", "packageDescription")
+importFrom("stats", "quantile", "sd")
+
+  
+  

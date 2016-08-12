@@ -1,0 +1,19 @@
+citHeader("To cite rich in publications please use the following reference:")
+citEntry(entry="Article",
+	title = "rich: an R package to analyse species richness",
+        author = personList(as.person("J.-P. Rossi")),
+	journal = "Diversity",
+  	year = "2011",
+	volume = "3",
+	pages = "112-120",
+	number = "1",
+        note = "http://www.mdpi.com/1424-2818/3/1/112/",        
+        textVersion = 
+        paste("Rossi, J.-P. ",
+	       "(2011) ", 
+               "rich: an R package to analyse species richness. ",
+               "Diversity. ",
+               "3(1): 112-120.",
+               sep="")
+         )
+

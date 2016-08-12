@@ -1,0 +1,418 @@
+---
+title: "Introduction to the `R` package `rich`"
+author: | 
+  | Jean-Pierre Rossi
+  | CBGP - INRA Montpellier http://www6.montpellier.inra.fr/cbgp
+  | For `rich` version 1.0.1
+date: "`r Sys.Date()`"
+fontsize: 12pt
+graphics: yes
+output:
+   pdf_document:
+     fig_caption: no
+     fig_height: 4
+     fig_width: 5
+     number_sections: yes
+     toc: yes
+     toc_depth: 5
+bibliography: rich.bib
+vignette: >
+ %rmarkdown::html_vignette
+  %\VignetteIndexEntry{ggene_introduction}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+```{r, echo=FALSE}
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
+```
+[//]: mysize=TRUE, size="\\small"
+ \newpage
+ 
+```{r, echo=FALSE}
+knitr::knit_hooks$set(mysize = function(before, options, envir) {
+  if (before) 
+    return(options$size)
+})
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(rich)
+```
+
+# Installation
+
+The current stable version (rich 1.0.1) is available from CRAN.
+You can also install `rich` from R by simply typing:
+```{r, eval=FALSE}
+install.packages("rich", dep=TRUE)
+```
+
+The development version is hosted by R-Forge and you can install it from R by typing:
+
+```{r, eval=FALSE}
+install.packages("rich", repos="http://R-Forge.R-project.org", dep=TRUE)
+```
+
+
+# What is `rich` ?
+
+`rich` is a set of functions designed to perform simple species richness analyses. Readers will find interesting R resources in the package `vegan` [@Oksanen2016].
+
+# Basic features
+
+The function `rich` computes the species richness on the basis of bootstrap estimation. 
+
+```{r, fig.align="center"}
+library(rich)
+data(ef)
+
+# Bootstrap estimation based on 99 randomizations
+o1 <- rich(matrix=ef, nrandom=99)
+o1 
+```
+
+The mean species richness *i.e.* the average value over the sampling units is given in the slot `$mr` and its standard deviation is given in `$mrsd`. The cumulated richness is given in `$cr`. The bootstrap estimate of the cumulated richness is stored in  `$bootCR`. `$cr.obs` is simply the observed cumulated value whereas the corresponding bootstrapped value is reported in `$cr.boot`. 
+
+We can plot the mean and cumulated bootstrap estimates of species richness:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE}
+# plot bootstrapped cumulated and mean richness values
+library(gplots)
+col <- c("lightblue", "lavender")
+d <- c(o1$bootCR$cr.boot, o1$bootMR$mr.boot)
+
+ci.l <- c(o1$bootCR$cr.boot + o1$bootCR$cr.se, 
+	o1$bootMR$mr.boot + o1$bootMR$mr.se) 
+ci.u <-  c(o1$bootCR$cr.boot, o1$bootMR$mr.boot) 
+ci.l ; ci.u
+barplot2(d, col = col, ylim=c(0,o1$bootCR$cr.obs), 
+	plot.ci = TRUE, ci.l = ci.l, ci.u = ci.u, ylab="richness",
+	names.arg=c("cumulated\nrichness", "mean\nrichness"))
+```
+
+The dispersion of the bootstrap estimates can be used to compute a corrected value [@Manly1997]. `rich`
+ provides these corrected estimates and the outputs can be visualized as follows:
+ 
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+# plot corrected estimates 
+col <- c("mistyrose", "cornsilk")
+d <- c(o1$bootCR$cr.boot, o1$bootCR$cr.bcorr-o1$bootCR$cr.boot)
+d2 <- c(o1$bootMR$mr.bcorr, o1$bootMR$mr.boot-o1$bootMR$mr.bcorr)
+dd <- cbind(d,d2) 
+barplot2(dd, col=col, names.arg=c("cumulated\nrichness", "mean\nrichness"))
+legend("topright", legend=c("bootstrap estimate", "correction"), 
+	col="black", pch=c(22,22), bty="n", pt.bg=col)
+```
+ 
+# Comparing species richness 
+
+## Principle
+
+One very common question is to determine if the species richness estimated in two sampling areas are statistically significant. This is for example the question if we sample fauna in plots under conventional agriculture and organic farming.
+Usually we perform sampling in each site, using a set of sampling units such as traps for insects, soil monoliths for soil fauna, surbers in rivers surveys etc. Each sampling unit brings a set of species forming a list whose length is the species richness.
+
+
+Imagine a very simple framework where sites A and B are sampled using $n$ sampling units. Each unit brings one estimation of species richness. We thus end up with $n$ local estimates of the richness $S$ for each site.
+
+If we want to compare the richness of site A and B we must be careful. A very common strategy is to perform a student t test which amounts to compare the mean richness of each site. This corresponds to averaging each set of $n$ values and compare the resulting means. This is not a comparison of the richness in site A and B, but rather a comparisons of the density of species richness in each site. Many users go for a student t test because they need a statistical test and that means they need replicates. 
+
+Imagine that 2 sites are sampled with 2 replicates and that the data are as follows:
+
+\begin{center}
+\begin{tabular}{lcccc}
+  \hline
+    & \multicolumn{2}{c}{site 1} & \multicolumn{2}{c}{site 2} \\  
+    & sample 1 & sample 2 & sample 1 & sample 2 \\
+  \hline \hline
+  species 1 & 1 & 0 & 1 & 1 \\
+  species 2 & 0 & 1 & 0 & 0 \\
+  \hline
+\end{tabular}
+\end{center}
+
+Both sites have a mean richness of 1 species per sample. However the cumulated richness is 2 in site 1 and only 1 in site 2. This very simple example illustrates the importance of considering the cumulated richness in biodiversity surveys. The problem is that we end up comparing only 2 values, one per site, with no replicate. This impairs statistical comparisons by mean of usual tests. 
+
+Randomization tests offer a solution that is clearly explained in Manly [-@Manly1997]. The function `c2cv` (standing for *compare 2 cumulated values*) implements such comparison of 2 values of species richness using a randomization procedure. Note that the function only handles 2 values comparison and thus does not allow multi-site direct analyis.
+
+## Functions `c2cv` and `c2m`
+
+### `c2cv`
+
+`c2cv` stands for *compare 2 cumulated values*.
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+data(efeb)
+out <- c2cv(com1=efeb$ef,com2=efeb$eb,nrandom=100,verbose=FALSE)
+
+out$res
+```
+
+The difference between the richness in site 1 and site 2 is given by `cv1-cv2` and equals 99 species in the example. The corresponding value after randomizations is indicated by `randomized cv1-cv2` and is much smaller. The $n$ randomized values are used to compute the quantiles at $p=0.975$ and $p=0.025$ corresponding to a global interval of 95%. We can see that the observed difference if well above the upper quantile value (ca. 31) indicating that the observed difference is much larger than expected under the null hypothesis of "no difference between sites".
+
+### `c2m`
+
+`c2m` compares mean richness of two populations and any type of data can be processed. We illustrates the function using the example  of the golden jackals given p. 4 in Manly [-@Manly1997].
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+# The example of mandible length of male and female 
+# golden jackals from Manly (1997), p.4.
+males<-c(120, 107, 110, 116, 114, 111, 113, 117, 114, 112)
+females<-c(110, 111, 107, 108, 110, 105, 107, 106, 111, 111)
+out <- c2m(pop1=males, pop2=females, nrandom=99)
+out$res
+```
+
+
+`out$res` contains the results while `out$rand` gives the values of the difference between the means to be compared after randomization. We can plot an histogram of these values:
+
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+hist(out$rand)
+```
+
+It is interesting to add the vertical lines corresponding to the observed value (in red) and the quantile values for probability values of 0.975 and 0.025 (in blue):
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+hist(out$rand)
+abline(v=out$res[3,1], col="red")
+abline(v=out$res[5,1], col="blue")
+abline(v=out$res[6,1], col="blue")
+```
+
+
+Let's see what happens when the populations are very similar. In the following example we simulate normal populations and compare them using `c2m`: 
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+pop1<-rnorm(10)
+pop2<-rnorm(10)
+out <- c2m(pop1=pop1, pop2=pop2, nrandom=99)
+out$res
+hist(out$rand)
+abline(v=out$res[3,1], col="red")
+abline(v=out$res[5,1], col="blue")
+abline(v=out$res[6,1], col="blue")
+```
+
+The observed difference lies between the quantiles.
+
+In some cases, the sets of values to be compared can overlap. This is what happen in our second example below.
+We have recorded the maximum temperature at sites where either *Tomicus destruens* or *T. piniperda*, two closely related species of bark beetles, have been recorded. The species are sympatric in 4 sites which leads to an overlap *i.e.* values common to both species between the distributions to be compared. The values common to both populations are passed to the function `c2m`
+ by the argument `pop3`. 
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+data(Tomicus)
+out <- c2m(pop1=Tomicus$destruens,pop2=Tomicus$piniperda, 
+pop3=Tomicus$both, nrandom=99)
+out$res
+```
+
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center"}
+hist(out$rand)
+abline(v=out$res[3,1], col="red")
+abline(v=out$res[5,1], col="blue")
+abline(v=out$res[6,1], col="blue")
+```
+
+The value of $mv1-mv2$ lies outside the envelope defined by the quantiles which indicates a difference in species tolerance to temperature. 
+
+`c2m` can be used to make comparisons between two objects generated by the function `rich`:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+data(ef)
+o1 <- rich(matrix=ef, nrandom=99, verbose=TRUE)
+data(ea)
+o2 <- rich(matrix=ea, nrandom=99, verbose=TRUE)
+out <- c2m(pop1=o1$sumrow, pop2=o2$sumrow, nrandom=999, verbose=TRUE)
+hist(out$rand)
+abline(v=out$res[3,1], col="red")
+abline(v=out$res[5,1], col="blue")
+abline(v=out$res[6,1], col="blue")
+```
+
+# Rarefaction curves
+
+## `rarc` 
+
+`rich` allows to compute the rarefaction curve which corresponds to the changes in the species richness with sampling intensity. 
+User selects the set of values of sampling size for which the estimate of species richness is needed, the number of randomizations to be performed and the values of the upper and lower bounds.
+`rarc` returns a data frame (`$out`) with the bootstrap estimates of species richness, the corresponding statistical envelop and the average number of individuals for the sample size to be investigated.
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+data(ef)
+t <- rarc(ef,samplesize=c(5,10,15,20,25), nrandom=30, p1=0.975, p2=0.025)
+head(t)
+```
+
+`t` can be used to plot the changes in richness according to sample size:
+ 
+ 
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+plot(t$out[,6],t$out[,1], type="b", ylim=range(c(t$out[,2],t$out[,3])),
+	xlab="number of sampling units", ylab="richness")
+points(t$out[,6] , t$out[,2], type="l", col="red")
+points(t$out[,6] , t$out[,3], type="l", col="blue")
+```
+
+Note that the function uses bootstrap which means sampling with replacement. The consequence is that the richness estimated for a sample size equal to the size of the dataset is *not* equal to the observed richness, it is *lower*. For example the species richness of the dataset `ef` is 121 and the number of sampling units is 30:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+data(ef)
+r <- rich(ef)
+r$cr
+dim(ef)[1]
+```
+
+If we perform rarefaction curve for (say) samples of {10, 20, 30} we get:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+data(ef)
+t <- rarc(ef,samplesize=c(10, 20, 30), nrandom=30, p1=0.975, p2=0.025)
+t
+```
+
+For $n=30$ the bootstrap estimate of the richness is ca. 90 while the observed value is 121. If we plot the cruve and add the observed value the difference is clear:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+plot(t$out[,6],t$out[,1], type="b", ylim=range(c(t$out[,2],t$out[,3])),
+	xlab="number of sampling units", ylab="richness")
+points(t$out[,6] , t$out[,2], type="l", col="red")
+points(t$out[,6] , t$out[,3], type="l", col="blue")
+    abline(h=r$cr, lty="dashed")
+```
+
+The interest of such estimates by bootstrap is that the variance of the estimate is meaningful whatever the sampling size which is not the case of rarefaction curves based on resampling with replacement. When replacement is not allowed, the variance decreases with increasing sampling size and becomes null for the maximum sampling size.
+
+When the argument `save`  is set to `TRUE` `rarc` returns an additional list (`$bootstrapped.val`) which corrsponds to the raw bootstraped values used to compute the quantiles. It may be useful for users who want to compute standard errors for example. The example below shows how to compute the standard errors. 
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+# Computing the standard deviation instead of the quantiles.
+# We set the save argument to TRUE
+t <- rarc(ef,samplesize=c(5,10,15,20,25), nrandom=10, p1=0.975, 
+	p2=0.025, save=TRUE)
+
+# The values of interest are in the list t$bootstrapped.val
+# t$bootstrapped.val[[1]] contains the values for sample size #1
+# t$bootstrapped.val[[2]] contains the values for sample size #2...
+# t$bootstrapped.val[[3]][,1] corresponds to the richness 
+# t$bootstrapped.val[[3]][,2] corresponds to the number of individuals 
+
+# Computing the standard for the third sampling size
+standard.error <- sd(t$bootstrapped.val[[3]][,1]) / 
+	sqrt(length(t$bootstrapped.val[[3]][,1]))
+
+# compute the standard error for all sample sizes:
+samplesize <- c(5,10,15,20,25)
+stdev <- rep(NA, times=length(samplesize))
+for (i in 1:(length(samplesize))) {
+    stdev[i] <- sd(t$bootstrapped.val[[i]][,1])/
+    	sqrt(length(t$bootstrapped.val[[i]][,1]))   
+    }
+```
+
+We plot the results:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+r <- range(t$out$mean.richness-stdev, t$out$mean.richness+2*stdev)
+r
+plot(t$out$mean.nb.individuals, t$out$mean.richness, pch=19, ylim=r,
+xlab="nb individuals", ylab="Mean richness (bootstrap) +/- SD")
+arrows(t$out$mean.nb.individuals, t$out$mean.richness-stdev, 
+	t$out$mean.nb.individuals, t$out$mean.richness+stdev, 
+	length=0.05, angle=90, code=3)
+```
+
+
+
+
+
+## `raref`
+
+`raref` computes the rarefaction curve and interpolates the species richness corresponding to a given density of individuals (not a number of samples!).
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+ data(ef)
+    r <- raref(ef, dens=1100, nrandom=50)
+    head(r$rar)
+    r$Sinterp
+```    
+    
+We plot the curve and the interpolated value:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+    plot(r$rar$ind, r$rar$nbsp, type="b")
+    abline(v=r$Sinterp[1], lty="dashed") ; abline(h=r$Sinterp[2], lty="dashed")
+    points(r$Sinterp[1], r$Sinterp[2], pch=3, col="red")
+```
+
+
+    
+## `raref2` 
+
+raref2 computes another estimation of the species richness by thinning the data matrix so that the overall corresponding density is comprised in a fixed interval.
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+    data(ef)
+    r2 <- raref2(matrix=ef, dens=1100, tolerance=0.01, nrandom=50)
+    r2$mean.boot
+```
+
+
+We can add this second estimate to the rarefaction curve derived form the outputs of `raref`:
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+    plot(r$rar$ind, r$rar$nbsp, type="p", cex=0.5)
+    points(r$Sinterp[1], r$Sinterp[2], pch=8, col="blue")
+    points(1100, r2$mean.boot, pch=3, col="red")
+    legend(x="bottomright", legend=c("raref", "raref2"), bty="n",
+    	pch=c(8,3), col=c("blue", "red"))
+```
+
+
+## `shared`
+
+`shared` computes the richness of each group of sample depicting a community, the number of species shared by pairs of communities and the total number of species for each pairs of community.
+Two or more communities can be compared :
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+    sp1<-c(1,2,3,4,5)
+    sp2<-c(0,0,0,0,0)
+    sp3<-c(1,1,0,0,0)
+    sp4<-c(0,0,0,0,0)
+    site1<-cbind(sp1, sp2, sp3, sp4)
+    colnames(site1)<-c("sp1", "sp2", "sp3", "sp4")
+    site1
+    sp1<-c(1,2,3)
+    sp2<-c(1,0,0)
+    sp3<-c(0,0,0)
+    sp4<-c(0,0,0)
+    site2<-cbind(sp1, sp2, sp3, sp4)
+    colnames(site2)<-c("sp1", "sp2", "sp3", "sp4")
+    site2
+    sp1<-c(1,2,3,4)
+    sp2<-c(1,0,0,0)
+    sp3<-c(1,0,0,0)
+    sp4<-c(1,0,0,0)
+    site3<-cbind(sp1, sp2, sp3, sp4)
+    colnames(site3)<-c("sp1", "sp2", "sp3", "sp4")
+    site3
+    
+    # we create a list containg the sites to be compared:
+    data<-list(site1,site2, site3)
+    names(data)<-c("site1","site2","site3")
+
+    shared(data)
+```
+
+`shared` retruns a matrix whose diagonal is the richness of each community.
+
+```{r, fig.width = 5.5, fig.height = 4.5, fig.align="center", message=FALSE, warning=FALSE}
+	data(efeb)
+	shared(efeb)
+```
+
+# References
+
